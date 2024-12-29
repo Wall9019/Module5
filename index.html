@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="RestaurantApp">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Sign Up</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .error {
+            color: red;
+            font-size: 0.9em;
+        }
+        .success {
+            color: green;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mt-5">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">Restaurant</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link" ui-sref="signup">Sign Up</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" ui-sref="myinfo">My Info</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <ui-view></ui-view>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-router/1.0.29/angular-ui-router.min.js"></script>
+
+    <script>
+        (function () {
+            'use strict';
+
+            // Main App Module
+            angular.module('RestaurantApp', ['ui.router'])
+                .config(RoutesConfig)
+                .service('UserService', UserService)
+                .controller('SignUpController', SignUpController)
+                .controller('MyInfoController', MyInfoController);
+
+            // Routes Configuration
+            RoutesConfig.$inject = ['$stateProvider', '$urlRouterProvider'];
+            function RoutesConfig($stateProvider, $urlRouterProvider) {
+                $urlRouterProvider.otherwise('/signup');
+
+                $stateProvider
+                    .state('signup', {
+                        url: '/signup',
+                        template: `
+                            <div class="card mt-5">
+                                <div class="card-body">
+                                    <h2 class="card-title">Sign Up</h2>
+                                    <form name="signupForm" novalidate ng-submit="signupCtrl.submit()">
+                                        <div class="mb-3">
+                                            <label for="firstName" class="form-label">First Name</label>
+                                            <input type="text" class="form-control" id="firstName" ng-model="signupCtrl.user.firstName" required>
+                                            <div class="error" ng-if="signupForm.firstName.$touched && signupForm.firstName.$invalid">First name is required.</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="lastName" class="form-label">Last Name</label>
+                                            <input type="text" class="form-control" id="lastName" ng-model="signupCtrl.user.lastName" required>
+                                            <div class="error" ng-if="signupForm.lastName.$touched && signupForm.lastName.$invalid">Last name is required.</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="email" class="form-label">Email</label>
+                                            <input type="email" class="form-control" id="email" ng-model="signupCtrl.user.email" required>
+                                            <div class="error" ng-if="signupForm.email.$touched && signupForm.email.$invalid">Valid email is required.</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="phone" class="form-label">Phone</label>
+                                            <input type="text" class="form-control" id="phone" ng-model="signupCtrl.user.phone" required>
+                                            <div class="error" ng-if="signupForm.phone.$touched && signupForm.phone.$invalid">Phone number is required.</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="menuNumber" class="form-label">Favorite Menu Item</label>
+                                            <input type="text" class="form-control" id="menuNumber" ng-model="signupCtrl.user.menuNumber" required>
+                                            <div class="error" ng-if="signupCtrl.errorMessage">{{ signupCtrl.errorMessage }}</div>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Submit</button>
+                                        <div class="success mt-3" ng-if="signupCtrl.successMessage">{{ signupCtrl.successMessage }}</div>
+                                    </form>
+                                </div>
+                            </div>
+                        `,
+                        controller: 'SignUpController as signupCtrl'
+                    })
+                    .state('myinfo', {
+                        url: '/myinfo',
+                        template: `
+                            <div class="card mt-5">
+                                <div class="card-body">
+                                    <h2 class="card-title">My Info</h2>
+                                    <div ng-if="myInfoCtrl.user">
+                                        <p><strong>First Name:</strong> {{ myInfoCtrl.user.firstName }}</p>
+                                        <p><strong>Last Name:</strong> {{ myInfoCtrl.user.lastName }}</p>
+                                        <p><strong>Email:</strong> {{ myInfoCtrl.user.email }}</p>
+                                        <p><strong>Phone:</strong> {{ myInfoCtrl.user.phone }}</p>
+                                        <p><strong>Favorite Item:</strong> {{ myInfoCtrl.menuItem.name }}</p>
+                                        <img ng-src="{{ myInfoCtrl.menuItem.image }}" alt="Favorite Item" class="img-fluid">
+                                    </div>
+                                    <div ng-if="!myInfoCtrl.user">
+                                        <p>Not Signed Up Yet. <a ui-sref="signup">Sign up Now!</a></p>
+                                    </div>
+                                </div>
+                            </div>
+                        `,
+                        controller: 'MyInfoController as myInfoCtrl'
+                    });
+            }
+
+            // User Service
+            function UserService() {
+                var service = this;
+                service.user = null;
+                service.menuItem = null;
+
+                service.saveUser = function (user) {
+                    service.user = user;
+                };
+
+                service.getUser = function () {
+                    return service.user;
+                };
+
+                service.saveMenuItem = function (menuItem) {
+                    service.menuItem = menuItem;
+                };
+
+                service.getMenuItem = function () {
+                    return service.menuItem;
+                };
+            }
+
+            // Sign Up Controller
+            SignUpController.$inject = ['UserService', '$http'];
+            function SignUpController(UserService, $http) {
+                var ctrl = this;
+                ctrl.user = {};
+
+                ctrl.submit = function () {
+                    var menuNumber = ctrl.user.menuNumber;
+                    var url = `https://coursera-jhu-default-rtdb.firebaseio.com/menu_items/${menuNumber}.json`;
+
+                    $http.get(url).then(function (response) {
+                        if (!response.data) {
+                            ctrl.errorMessage = 'No such menu number exists.';
+                        } else {
+                            UserService.saveUser(ctrl.user);
+                            UserService.saveMenuItem(response.data);
+                            ctrl.successMessage = 'Your information has been saved!';
+                            ctrl.errorMessage = '';
+                        }
+                    });
+                };
+            }
+
+            // My Info Controller
+            MyInfoController.$inject = ['UserService'];
+            function MyInfoController(UserService) {
+                var ctrl = this;
+                ctrl.user = UserService.getUser();
+                ctrl.menuItem = UserService.getMenuItem();
+            }
+        })();
+    </script>
+</body>
+
+</html>
